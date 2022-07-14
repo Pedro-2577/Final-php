@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8" />
+	<title>Forojoro</title>
+	<link rel="shortcut icon" type="image/x-icon" href="../img/icono.ico" />
+</head>
+<body>
+
+
+<h1>DW3 Programación 2 – Mendez, Pedro
+Informe de uso<h1>
+
+<h2>Forojoro</h2>
+<p>La razón del sitio es unir las distintas comunidades para que discutan sus inquietudes entre ellos en este foro.</p>
+<p>Posee 3 secciones.</p>
+
+<ul>
+	<li>Inicio: El inicio  es un vistazo rápido a los posteos más recientes que se registraron.</li>
+	<li>Popular: En esta sección está los posteos con más repercusión y participación del sitio.</li>
+	<li>Postear: Desde acá se crean los posteos nuevos.</li>
+</ul>
+
+<h2>Datos</h2>
+<P>Los datos del sql son:</P>
+<ol>
+	<li>Usuarios.</li>
+	<li>Posteos.</li>
+	<li>Comentarios.</li>
+</ol>
+
+<h2>Niveles de usuario </h2>
+
+<p>Existen tres niveles de usuarios. El usar, el admin y el sin cuenta.</p>
+<ul>
+	<li>User: Solo puede crear post y comentarios, ver las publicaciones y usuarios de los demás.</li>
+
+	<li>Admin: Tiene los mismos permisos que el usuario más el acceso al panel, desde donde puede borrar, crear y editar otras cuentas.
+	También puede borrar posteos.</li>
+
+	<li>Sin cuenta: Solo puede mirar posteos y comentarios, a diferencia del user no puede crearlos.</li>
+</ul>
+
+<h2>Panel de control </h2>
+<p>Requiere login, en el cual certifica si el usuario es o no admin. URL /admin/index.php</p>
+
+<h2>Usuarios y posteos pre-cargados</h2>
+
+<table>
+	<thead>
+		<tr>
+			<th>ID</th>
+			<th>NOMBRE</th>
+			<th>APELLIDO</th>
+			<th>EMAIL</th>
+			<th>CLAVE</th>
+			<th>NIVEL</th>
+			<th>FECHA</th>
+			<th>FOTO</th>
+			<th>SEXO</th>
+			<th>BANEO</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>1</td>
+			<td>---</td>
+			<td>---</td>
+			<td>german.rodriguez@davinci.edu.ar</td>
+			<td>1234</td>
+			<td>admin</td>
+			<td>19/6</td>
+			<td>sin_img.jpg</td>
+			<td>1</td>
+			<td>1</td>
+		</tr>
+		<tr>
+			<td>2</td>
+			<td>---</td>
+			<td>---</td>
+			<td>omar.toyos@davinci.edu.ar</td>
+			<td>1234</td>
+			<td>admin</td>
+			<td>19/6</td>
+			<td>sin_img.jpg</td>
+			<td>---</td>
+			<td>1</td>
+		</tr>
+		<tr>
+			<td>3</td>
+			<td>Gonzalo</td>
+			<td>Palumo</td>
+			<td>pal.gon@email.com</td>
+			<td>1234</td>
+			<td>user</td>
+			<td>19/6</td>
+			<td>sin_img.jpg</td>
+			<td>1</td>
+			<td>1</td>
+		</tr>
+		<tr>
+			<td>4</td>
+			<td>---</td>
+			<td>---</td>
+			<td>valentin.el.fantasma.amigable@email.com</td>
+			<td>1234</td>
+			<td>user</td>
+			<td>19/6</td>
+			<td>sin_img.jpg</td>
+			<td>1</td>
+			<td>1</td>
+		</tr>
+	</tbody>
+</table>
+
+<hr>
+
+<h1>PROGRAMACION II – Mendez y Pedro
+REFERENCIA TECNICA</h1>
+
+
+
+<h2>UPLOAD DE ARCHIVOS</h2>
+
+<p>Se puede subir archivos en el panel de control, desde el formulario ubicado en /admin/mas_p/agregar_user.php</p>
+<p>Los archivos se muestran en la grilla de publicaciones en /mas/home.php y /mas/populares.php cuando se ve el detalle del producto en /mas/ver_post.php</p>
+
+<h2>GDLibrary</h2>
+<p>El archivo que procesa el upload de archivos usa mas_a/registro.php (y la función que usa esta en recursos/funciones.php).</p>
+
+
+<h2>CONSULTAS SQL CON PARSEO DE DATOS (está en todos lados)</h2>
+
+<p>CASO 1: En el archivo /mas_a/registro.php. se hizo una consulta para insertar un nuevo usuario y otra para iniciar la sesión.</p>
+
+<p>(insertar usuario)
+INSERT INTO 
+	usuarios
+SET 
+	NOMBRE=NULLIF( '$nombre', '' ),
+	APELLIDO=NULLIF( '$apellido', '' ),
+	EMAIL='$email',
+	CLAVE=SHA1('$clave'),
+	FECHA_ALTA=NOW( ),
+	AVATAR = '$foto',
+	FKSEXO = '$genero',
+	BANEO='1',
+	NIVEL='user'</p>
+
+<p>(iniciar sesión)
+
+	SELECT
+	ID,
+	IFNULL( CONCAT(APELLIDO,' ', NOMBRE), SUBSTRING_INDEX(EMAIL,'@', 1) ) AS NOMBRE,
+	NOMBRE AS NOMBRE_REAL,
+	EMAIL,
+	FECHA_ALTA,
+	NIVEL,
+	BANEO,
+	AVATAR
+FROM
+	usuarios
+WHERE 
+	EMAIL='$email' AND
+	CLAVE=SHA1('$clave')
+LIMIT 1</p>
+
+
+
+
+
+
+<p>CASO 2: En el archivo /mas/populares.php. se hizo una consulta para ordenar los posteos según la cantidad de comentarios </p>
+
+<p>SELECT 
+	p.ID,
+	count(1),
+	TITULO,
+	p.FECHA_ALTA,
+	CONTENIDO,
+	CATEGORIA,
+	IFNULL( CONCAT(APELLIDO,' ', NOMBRE), SUBSTRING_INDEX(EMAIL,'@', 1) ) AS USER
+FROM 
+	publicaciones AS p
+	LEFT JOIN categorias AS c ON p.FKCATEGORIA = c.IDC 
+	LEFT JOIN usuarios AS u ON p.FKAUTOR = u.ID,
+	rel_pubg_user_comentario as rel
+Where 
+	rel.FKPUBLICAION = p.id
+Group by p.id
+Order by 2 desc</p>
+
+
+<p>CASO 3: En el archivo /mas/ver_post.php. se hizo una consulta para traer el posteo seleccionado y otra para traer los comentarios</p>
+
+
+
+
+
+
+
+<p>(Trae el posteo elegido)
+SELECT 
+	p.ID,
+	TITULO,
+	p.FECHA_ALTA,
+	CONTENIDO,
+	u.ID AS URL2,
+	CATEGORIA,
+	IFNULL( CONCAT(APELLIDO,' ', NOMBRE), SUBSTRING_INDEX(EMAIL,'@', 1) ) AS USER
+FROM 
+	publicaciones AS p
+	LEFT JOIN categorias AS c ON p.FKCATEGORIA = c.IDC 
+	LEFT JOIN usuarios AS u ON p.FKAUTOR = u.ID
+WHERE
+	p.ID = $id</p>
+
+
+
+<p>(trae los comentarios)
+SELECT 
+	IDREL,
+	COMENTARIO,
+	rel.FECHA_ALTA,
+	u.ID AS URL,
+	IFNULL( CONCAT(u.APELLIDO,' ', u.NOMBRE), SUBSTRING_INDEX(u.EMAIL,'@', 1) ) AS AUTOR
+FROM 
+	rel_pubg_user_comentario as rel
+	LEFT JOIN publicaciones AS p ON rel.FKPUBLICAION = p.ID 
+	LEFT JOIN usuarios AS u ON rel.FKUSUARIO = u.ID
+WHERE
+	rel.FKPUBLICAION = $id</p>
+
+
+
+
+<h2>BUSCADOR DE CONTENIDOS</h2>
+<p>No se pueden buscar contenidos</p>
+
+<h2>PAGINADOR DE DATOS</h2>
+</p>no hay</h1>
+
+<h2>ORDENAR RESULTADOS</h2>
+<p>se ordenan en mas/home.php, hay un listado de categorías en el index que al ser cliqueado filtra los posteos.</p>
+
+</body>
+</html>
